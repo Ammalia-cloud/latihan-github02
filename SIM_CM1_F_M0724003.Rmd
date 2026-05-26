@@ -1,7 +1,9 @@
 ---
 title: "Analisis Segmentasi Film pada Database Sakila"
-subtitle: "Sistem Informasi Manajemen — Case Method 1"
-author: "Nama Mahasiswa | NIM: M0719099 | Kelas: A"
+subtitle: "Sistem Informasi Manajemen Case Method 1"
+author: "Ammalia Meiby Meccha 
+NIM: M0724003 
+Kelas: F"
 date: "`r format(Sys.Date(), '%d %B %Y')`"
 output:
   html_document:
@@ -196,14 +198,13 @@ img { border-radius: 8px; }
     📊 Analisis Segmentasi Film — Database Sakila
   </div>
   <div style="font-size:.95rem;opacity:.9;">
-    <b>Nama</b>: [Nama Mahasiswa] &nbsp;|&nbsp;
-    <b>NIM</b>: M0719099 &nbsp;|&nbsp;
+    <b>Nama</b>: [Ammalia Meiby Meccha] &nbsp;|&nbsp;
+    <b>NIM</b>: M0724003 &nbsp;|&nbsp;
     <b>Kelas</b>: A &nbsp;|&nbsp;
-    <b>Mata Kuliah</b>: Sistem Informasi Manajemen (09373220330)
+    <b>Mata Kuliah</b>: Sistem Informasi Manajemen 
   </div>
   <div style="font-size:.85rem;opacity:.75;margin-top:4px;">
-    Dosen Pengampu: Husna Afanyn Khoirunissa &amp; Muhammad Bayu Nirwana &nbsp;|&nbsp;
-    Deadline: 26 Mei 2026 21.30 WIB
+    Dosen Pengampu:Muhammad Bayu Nirwana &nbsp;|&nbsp;
   </div>
 </div>
 ```
@@ -213,7 +214,8 @@ img { border-radius: 8px; }
 # Pendahuluan {#pendahuluan}
 
 <div class="info-box">
-📌 **Insight yang Diambil:** Laporan ini mengeksplorasi dua pertanyaan utama dari database Sakila:  
+**Insight yang Diambil:** Laporan ini ingin mengetahui dua insight dari database Sakila:
+
 (1) Bagaimana distribusi penyewaan film berdasarkan kategori genre?  
 (2) Apakah film-film dalam katalog Sakila dapat dikelompokkan menjadi segmen-segmen bermakna berdasarkan karakteristik bisnisnya?
 </div>
@@ -421,7 +423,7 @@ kable(summary_tbl,
 
 ---
 
-# Analisis 1 — Distribusi Penyewaan per Kategori Film {#analisis1}
+# Analisis 1 Distribusi Penyewaan per Kategori Film {#analisis1}
 
 ## Deskripsi Analisis
 
@@ -522,7 +524,7 @@ df_rental_cat %>%
 
 <div class="success-box">
 
-**📋 Temuan Utama Analisis 1:**
+**Temuan Utama Analisis 1:**
 
 **1. Kategori Terpopuler:** Genre **Sports** menempati posisi pertama dengan total penyewaan tertinggi, diikuti oleh **Animation** dan **Action**. Ketiga kategori ini bersama-sama menyumbang sekitar ±19% dari total seluruh penyewaan.
 
@@ -831,7 +833,7 @@ fviz_silhouette(sil_obj,
 
 <div class="success-box">
 
-**📋 Temuan Utama Analisis 2:**
+**Temuan Utama Analisis 2:**
 
 **1. Dua Segmen Film yang Terbentuk:**
 
@@ -861,7 +863,7 @@ Rata-rata Silhouette Score mendekati **0,50** mengindikasikan struktur cluster y
 
 <div class="info-box">
 
-**🔍 Ringkasan Temuan:**
+**Ringkasan Temuan:**
 
 Laporan ini telah menganalisis dua aspek utama dari database Sakila:
 
@@ -869,41 +871,9 @@ Laporan ini telah menganalisis dua aspek utama dari database Sakila:
 
 2. **Analisis Segmentasi Film (K-Means + Hierarchical Clustering)** berhasil mengidentifikasi **2 segmen film** yang berbeda berdasarkan harga sewa, durasi, dan biaya penggantian. Hasil ini dikonfirmasi oleh konsistensi antara dua metode clustering dan nilai Silhouette yang memadai.
 
-**💡 Rekomendasi Strategis:**
-- Prioritaskan pengadaan film kategori Sports dan Animation untuk meningkatkan volume penyewaan.
-- Gunakan informasi segmen cluster untuk strategi penetapan harga yang lebih dinamis.
-- Lakukan analisis lanjutan dengan menambahkan variabel perilaku pelanggan (RFM — Recency, Frequency, Monetary) untuk segmentasi yang lebih komprehensif.
+**Rekomendasi Strategis:**
+Dapat memprioritaskan pengadaan film kategori Sports dan Animation untuk meningkatkan volume penyewaan.menggunakan informasi segmen cluster untuk strategi penetapan harga yang lebih dinamis.melakukan analisis lanjutan dengan menambahkan variabel perilaku pelanggan (RFM — Recency, Frequency, Monetary) untuk segmentasi yang lebih komprehensif.
 
 </div>
 
 ---
-
-# Referensi {#referensi}
-
-1. MySQL AB. (2006). *Sakila Sample Database*. Oracle Corporation. https://dev.mysql.com/doc/sakila/en/
-
-2. Hartigan, J. A., & Wong, M. A. (1979). Algorithm AS 136: A k-means clustering algorithm. *Journal of the Royal Statistical Society. Series C (Applied Statistics)*, 28(1), 100–108.
-
-3. Ward, J. H. (1963). Hierarchical grouping to optimize an objective function. *Journal of the American Statistical Association*, 58(301), 236–244.
-
-4. Rousseeuw, P. J. (1987). Silhouettes: A graphical aid to the interpretation and validation of cluster analysis. *Journal of Computational and Applied Mathematics*, 20, 53–65.
-
-5. Wickham, H. (2016). *ggplot2: Elegant Graphics for Data Analysis*. Springer-Verlag New York.
-
-6. Kassambara, A., & Mundt, F. (2020). *factoextra: Extract and Visualize the Results of Multivariate Data Analyses*. R package version 1.0.7.
-
----
-
-```{=html}
-<div class="page-footer">
-  <p>
-    📄 Laporan ini dibuat menggunakan <strong>R Markdown</strong> dengan output HTML |
-    Dirender pada: <em>`r format(Sys.time(), '%d %B %Y, %H:%M WIB')`</em>
-  </p>
-  <p>
-    Sistem Informasi Manajemen (09373220330) — Program Studi Statistika<br>
-    Fakultas Matematika dan Ilmu Pengetahuan Alam — Universitas Sebelas Maret<br>
-    Jalan Ir Sutami No.36A Kentingan, Jebres, Surakarta, Jawa Tengah 57126
-  </p>
-</div>
-```
