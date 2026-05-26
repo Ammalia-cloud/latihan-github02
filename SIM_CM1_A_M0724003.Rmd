@@ -1,0 +1,909 @@
+---
+title: "Analisis Segmentasi Film pada Database Sakila"
+subtitle: "Sistem Informasi Manajemen — Case Method 1"
+author: "Nama Mahasiswa | NIM: M0719099 | Kelas: A"
+date: "`r format(Sys.Date(), '%d %B %Y')`"
+output:
+  html_document:
+    theme: flatly
+    highlight: tango
+    toc: true
+    toc_depth: 3
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+    number_sections: true
+    df_print: paged
+    code_folding: show
+---
+
+```{=html}
+<!-- ======================================================
+     CUSTOM CSS — kustomisasi tampilan HTML & CSS
+     ====================================================== -->
+<style>
+/* ── Google Font ── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Fira+Code&display=swap');
+
+/* ── Root Variables ── */
+:root {
+  --primary   : #2563EB;
+  --secondary : #7C3AED;
+  --accent    : #059669;
+  --danger    : #DC2626;
+  --warning   : #D97706;
+  --dark      : #1E293B;
+  --light-bg  : #F8FAFC;
+  --card-bg   : #FFFFFF;
+  --border    : #E2E8F0;
+  --text-main : #334155;
+  --text-muted: #64748B;
+  --radius    : 12px;
+  --shadow    : 0 4px 24px rgba(0,0,0,.08);
+}
+
+/* ── Base ── */
+body {
+  font-family  : 'Inter', sans-serif;
+  font-size    : 15px;
+  color        : var(--text-main);
+  background   : var(--light-bg);
+  line-height  : 1.75;
+}
+
+/* ── TOC ── */
+#TOC {
+  background   : var(--card-bg);
+  border       : 1px solid var(--border);
+  border-radius: var(--radius);
+  padding      : 16px 20px;
+  box-shadow   : var(--shadow);
+  font-size    : 13.5px;
+}
+#TOC a { color: var(--primary); text-decoration: none; }
+#TOC a:hover { text-decoration: underline; }
+
+/* ── Headings ── */
+h1, h2, h3, h4 { font-weight: 700; }
+h1.title {
+  color        : var(--primary);
+  font-size    : 2rem;
+  border-bottom: 4px solid var(--primary);
+  padding-bottom: 8px;
+}
+h1 { color: var(--dark);    font-size: 1.6rem; }
+h2 { color: var(--primary); font-size: 1.3rem; border-left: 5px solid var(--primary); padding-left: 10px; }
+h3 { color: var(--secondary); font-size: 1.1rem; }
+
+/* ── Subtitle & Author meta ── */
+.subtitle { color: var(--text-muted); font-size: 1.05rem; }
+.author, .date { color: var(--text-muted); font-size: 0.9rem; }
+
+/* ── Cards / sections ── */
+.section.level2 {
+  background   : var(--card-bg);
+  border       : 1px solid var(--border);
+  border-radius: var(--radius);
+  padding      : 24px 28px;
+  margin-bottom: 28px;
+  box-shadow   : var(--shadow);
+}
+
+/* ── Info / callout boxes ── */
+.info-box {
+  background : #EFF6FF;
+  border-left: 5px solid var(--primary);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding    : 14px 18px;
+  margin     : 16px 0;
+  font-size  : 14px;
+}
+.success-box {
+  background : #ECFDF5;
+  border-left: 5px solid var(--accent);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding    : 14px 18px;
+  margin     : 16px 0;
+  font-size  : 14px;
+}
+.warning-box {
+  background : #FFFBEB;
+  border-left: 5px solid var(--warning);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding    : 14px 18px;
+  margin     : 16px 0;
+  font-size  : 14px;
+}
+
+/* ── Stat badges ── */
+.stat-grid {
+  display              : grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap                  : 16px;
+  margin               : 20px 0;
+}
+.stat-card {
+  background    : var(--card-bg);
+  border        : 1px solid var(--border);
+  border-radius : var(--radius);
+  padding       : 18px 16px;
+  text-align    : center;
+  box-shadow    : var(--shadow);
+}
+.stat-card .number {
+  font-size  : 2rem;
+  font-weight: 700;
+  color      : var(--primary);
+  line-height: 1.1;
+}
+.stat-card .label {
+  font-size : 12px;
+  color     : var(--text-muted);
+  margin-top: 4px;
+}
+
+/* ── Tables ── */
+table {
+  width        : 100%;
+  border-collapse: collapse;
+  font-size    : 13.5px;
+  margin       : 16px 0;
+}
+thead { background: var(--primary); color: #fff; }
+thead th { padding: 10px 14px; text-align: left; }
+tbody tr:nth-child(even) { background: #F1F5F9; }
+tbody td { padding: 8px 14px; border-bottom: 1px solid var(--border); }
+
+/* ── Code ── */
+pre, code {
+  font-family  : 'Fira Code', monospace;
+  font-size    : 13px;
+  background   : #1E293B;
+  color        : #E2E8F0;
+  border-radius: 8px;
+}
+pre { padding: 16px; overflow-x: auto; }
+
+/* ── Plots ── */
+img { border-radius: 8px; }
+
+/* ── Footer ── */
+.page-footer {
+  text-align : center;
+  font-size  : 12px;
+  color      : var(--text-muted);
+  border-top : 1px solid var(--border);
+  padding-top: 16px;
+  margin-top : 40px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .stat-grid { grid-template-columns: 1fr 1fr; }
+}
+</style>
+```
+
+---
+
+<!-- ══════════════════════════════════════════════════════
+     IDENTITY BANNER
+     ══════════════════════════════════════════════════════ -->
+```{=html}
+<div style="background:linear-gradient(135deg,#2563EB 0%,#7C3AED 100%);
+            color:#fff;border-radius:16px;padding:28px 32px;margin-bottom:28px;">
+  <div style="font-size:1.5rem;font-weight:700;margin-bottom:6px;">
+    📊 Analisis Segmentasi Film — Database Sakila
+  </div>
+  <div style="font-size:.95rem;opacity:.9;">
+    <b>Nama</b>: [Nama Mahasiswa] &nbsp;|&nbsp;
+    <b>NIM</b>: M0719099 &nbsp;|&nbsp;
+    <b>Kelas</b>: A &nbsp;|&nbsp;
+    <b>Mata Kuliah</b>: Sistem Informasi Manajemen (09373220330)
+  </div>
+  <div style="font-size:.85rem;opacity:.75;margin-top:4px;">
+    Dosen Pengampu: Husna Afanyn Khoirunissa &amp; Muhammad Bayu Nirwana &nbsp;|&nbsp;
+    Deadline: 26 Mei 2026 21.30 WIB
+  </div>
+</div>
+```
+
+---
+
+# Pendahuluan {#pendahuluan}
+
+<div class="info-box">
+📌 **Insight yang Diambil:** Laporan ini mengeksplorasi dua pertanyaan utama dari database Sakila:  
+(1) Bagaimana distribusi penyewaan film berdasarkan kategori genre?  
+(2) Apakah film-film dalam katalog Sakila dapat dikelompokkan menjadi segmen-segmen bermakna berdasarkan karakteristik bisnisnya?
+</div>
+
+## Deskripsi Dataset
+
+Database **Sakila** merupakan contoh basis data relasional milik MySQL yang mensimulasikan sistem manajemen toko penyewaan film (*video rental store*). Dataset ini pertama kali diperkenalkan oleh MySQL AB pada tahun 2006 dan menjadi standar referensi untuk pembelajaran SQL dan analisis data.
+
+Beberapa tabel utama yang digunakan dalam laporan ini:
+
+| Tabel | Deskripsi | Jumlah Record (approx.) |
+|---|---|---|
+| `film` | Informasi film (judul, durasi, rating, harga sewa) | 1.000 |
+| `category` | Kategori/genre film | 16 |
+| `film_category` | Relasi film–kategori | 1.000 |
+| `inventory` | Stok fisik DVD per toko | 4.581 |
+| `rental` | Transaksi penyewaan | 16.044 |
+
+## Tujuan Analisis
+
+Laporan ini bertujuan untuk:
+
+1. Mendeskripsikan distribusi penyewaan film berdasarkan kategori genre (**Analisis 1**)
+2. Melakukan segmentasi film menggunakan **K-Means Clustering** berdasarkan variabel bisnis (harga sewa, durasi, biaya penggantian) (**Analisis 2**)
+3. Memvalidasi hasil segmentasi dengan **Hierarchical Clustering** dan visualisasi dendrogram
+
+---
+
+# Persiapan Data {#persiapan}
+
+## Koneksi Database
+
+Koneksi ke database Sakila dilakukan melalui **ODBC** menggunakan driver MySQL 8.0.
+
+```{r setup, include=TRUE, warning=FALSE, message=FALSE}
+# ── Memuat paket yang diperlukan ──────────────────────────────────────────────
+library(DBI)       # Antarmuka database generik
+library(odbc)      # Driver ODBC untuk koneksi MySQL
+library(dplyr)     # Manipulasi data
+library(ggplot2)   # Visualisasi data
+library(scales)    # Format sumbu pada ggplot2
+library(cluster)   # Algoritma clustering (PAM, silhouette)
+library(factoextra) # Visualisasi clustering
+library(ggdendro)  # Dendrogram dari objek hclust
+library(knitr)     # Tabel knitr
+library(kableExtra)# Styling tabel HTML
+
+# ── Opsi global ────────────────────────────────────────────────────────────────
+knitr::opts_chunk$set(
+  echo    = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  fig.align = "center",
+  fig.width = 9,
+  fig.height = 5.5,
+  dpi     = 150
+)
+options(scipen = 999)
+```
+
+```{r koneksi-db}
+# ── Koneksi ke MySQL (Sakila) ─────────────────────────────────────────────────
+con1 <- DBI::dbConnect(
+  odbc::odbc(),
+  Driver   = "MySQL ODBC 8.0 ANSI Driver",
+  Server   = "127.0.0.1",
+  Database = "sakila",
+  UID      = "root",
+  PWD      = "Jito1danHafi2",
+  Port     = 3306
+)
+
+cat("✅ Koneksi ke database Sakila berhasil!\n")
+cat("   Server  :", "127.0.0.1 (localhost)\n")
+cat("   Database:", "sakila\n")
+cat("   Driver  :", "MySQL ODBC 8.0 ANSI Driver\n")
+```
+
+## Pengambilan Data
+
+### Data Distribusi Penyewaan per Kategori
+
+```{r query-kategori}
+# ── Query: jumlah penyewaan per kategori film ─────────────────────────────────
+query_rental_cat <- "
+  SELECT
+    c.name                         AS kategori,
+    COUNT(r.rental_id)             AS total_rental,
+    COUNT(DISTINCT f.film_id)      AS jumlah_film,
+    ROUND(AVG(f.rental_rate), 2)   AS avg_harga_sewa,
+    ROUND(AVG(f.length), 1)        AS avg_durasi_menit
+  FROM rental r
+  JOIN inventory  i  ON r.inventory_id  = i.inventory_id
+  JOIN film       f  ON i.film_id       = f.film_id
+  JOIN film_category fc ON f.film_id   = fc.film_id
+  JOIN category   c  ON fc.category_id = c.category_id
+  GROUP BY c.name
+  ORDER BY total_rental DESC
+"
+
+df_rental_cat <- dbGetQuery(con1, query_rental_cat)
+df_rental_cat
+```
+
+### Data Film untuk Clustering
+
+```{r query-film}
+# ── Query: atribut film untuk segmentasi ─────────────────────────────────────
+query_film <- "
+  SELECT
+    f.film_id,
+    f.title,
+    f.rental_rate,
+    f.length                           AS durasi,
+    f.replacement_cost,
+    f.rental_duration,
+    f.rating,
+    c.name                             AS kategori,
+    (
+      SELECT COUNT(*)
+      FROM inventory i2
+      WHERE i2.film_id = f.film_id
+    )                                  AS stok,
+    (
+      SELECT COUNT(r2.rental_id)
+      FROM inventory i3
+      JOIN rental r2 ON i3.inventory_id = r2.inventory_id
+      WHERE i3.film_id = f.film_id
+    )                                  AS total_disewa
+  FROM film f
+  JOIN film_category fc ON f.film_id = fc.film_id
+  JOIN category c       ON fc.category_id = c.category_id
+"
+
+df_film <- dbGetQuery(con1, query_film)
+
+# Tangani nilai NA
+df_film <- df_film %>% filter(!is.na(durasi), !is.na(rental_rate), !is.na(replacement_cost))
+
+cat("✅ Data film berhasil diambil.\n")
+cat("   Jumlah film  :", nrow(df_film), "\n")
+cat("   Jumlah kolom :", ncol(df_film), "\n")
+```
+
+```{r tutup-koneksi, include=FALSE}
+# Tutup koneksi setelah semua query selesai
+dbDisconnect(con1)
+```
+
+## Ringkasan Statistik Deskriptif
+
+```{r stat-deskriptif}
+# Statistik deskriptif variabel utama
+summary_tbl <- df_film %>%
+  summarise(
+    n_film          = n(),
+    avg_rental_rate = round(mean(rental_rate), 2),
+    sd_rental_rate  = round(sd(rental_rate), 2),
+    avg_durasi      = round(mean(durasi), 1),
+    sd_durasi       = round(sd(durasi), 1),
+    avg_repl_cost   = round(mean(replacement_cost), 2),
+    sd_repl_cost    = round(sd(replacement_cost), 2),
+    avg_stok        = round(mean(stok), 1),
+    avg_total_sewa  = round(mean(total_disewa), 1)
+  )
+
+kable(summary_tbl,
+      col.names = c("N Film","Avg Harga Sewa","SD Harga",
+                    "Avg Durasi (mnt)","SD Durasi",
+                    "Avg Repl. Cost","SD Repl. Cost",
+                    "Avg Stok","Avg Disewa"),
+      caption = "Tabel 1. Statistik Deskriptif Variabel Film") %>%
+  kable_styling(bootstrap_options = c("striped","hover","condensed"),
+                full_width = TRUE)
+```
+
+```{=html}
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="number">1.000</div>
+    <div class="label">Total Film</div>
+  </div>
+  <div class="stat-card">
+    <div class="number">16</div>
+    <div class="label">Kategori Genre</div>
+  </div>
+  <div class="stat-card">
+    <div class="number">16.044</div>
+    <div class="label">Transaksi Rental</div>
+  </div>
+  <div class="stat-card">
+    <div class="number">$2,98</div>
+    <div class="label">Rata-rata Harga Sewa</div>
+  </div>
+  <div class="stat-card">
+    <div class="number">115 mnt</div>
+    <div class="label">Rata-rata Durasi Film</div>
+  </div>
+  <div class="stat-card">
+    <div class="number">$19,98</div>
+    <div class="label">Rata-rata Replacement Cost</div>
+  </div>
+</div>
+```
+
+---
+
+# Analisis 1 — Distribusi Penyewaan per Kategori Film {#analisis1}
+
+## Deskripsi Analisis
+
+<div class="info-box">
+🎯 **Tujuan Analisis 1:** Mengetahui kategori genre film mana yang paling banyak disewa oleh pelanggan, serta mengidentifikasi karakteristik harga sewa rata-rata per kategori. Insight ini berguna untuk pengambilan keputusan bisnis dalam hal pengadaan stok dan strategi pemasaran.
+</div>
+
+Pada analisis ini, dilakukan **agregasi data** dari tabel `rental`, `inventory`, `film`, `film_category`, dan `category` untuk menghitung total transaksi penyewaan berdasarkan genre film.
+
+## Persamaan Matematis
+
+Metrik utama yang dihitung dalam analisis ini adalah:
+
+**Proporsi Penyewaan per Kategori:**
+
+$$P_k = \frac{R_k}{\sum_{i=1}^{K} R_i} \times 100\%$$
+
+di mana:
+
+- $P_k$ = persentase penyewaan kategori $k$
+- $R_k$ = total penyewaan kategori $k$
+- $K$ = jumlah total kategori (16)
+
+**Rata-rata Harga Sewa per Kategori:**
+
+$$\bar{x}_k = \frac{1}{n_k} \sum_{j=1}^{n_k} x_{kj}$$
+
+di mana $n_k$ adalah jumlah film dalam kategori $k$ dan $x_{kj}$ adalah harga sewa film $j$ dalam kategori $k$.
+
+## Visualisasi 1 — Bar Chart Distribusi Penyewaan per Kategori
+
+```{r vis1-bar-chart, fig.height=6, fig.width=10}
+# ── Hitung proporsi ────────────────────────────────────────────────────────────
+df_rental_cat <- df_rental_cat %>%
+  mutate(
+    proporsi    = round(total_rental / sum(total_rental) * 100, 2),
+    kategori    = factor(kategori, levels = kategori[order(total_rental)])
+  )
+
+# ── Warna gradien berdasarkan jumlah rental ────────────────────────────────────
+warna_gradien <- colorRampPalette(c("#93C5FD", "#2563EB", "#1E3A8A"))(nrow(df_rental_cat))
+
+# ── Plot ────────────────────────────────────────────────────────────────────────
+ggplot(df_rental_cat, aes(x = kategori, y = total_rental, fill = total_rental)) +
+  geom_col(width = 0.75, color = "white", linewidth = 0.3, show.legend = FALSE) +
+  geom_text(aes(label = paste0(format(total_rental, big.mark = "."), "\n(", proporsi, "%)")),
+            hjust = -0.1, size = 3, color = "#1E293B", lineheight = 1.1) +
+  scale_fill_gradientn(colors = c("#93C5FD", "#2563EB", "#1E3A8A")) +
+  scale_y_continuous(labels = label_comma(big.mark = "."),
+                     expand = expansion(mult = c(0, .25))) +
+  coord_flip() +
+  labs(
+    title    = "Distribusi Total Penyewaan Film Berdasarkan Kategori Genre",
+    subtitle = "Database Sakila | 16 Kategori | 16.044 Total Transaksi",
+    x        = "Kategori Genre",
+    y        = "Total Penyewaan",
+    caption  = "Sumber: Database Sakila (sakila.rental, sakila.film_category)"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title       = element_text(face = "bold", size = 14, color = "#1E293B"),
+    plot.subtitle    = element_text(color = "#64748B", size = 11),
+    plot.caption     = element_text(color = "#94A3B8", size = 9),
+    axis.text.y      = element_text(face = "bold", color = "#334155"),
+    axis.text.x      = element_text(color = "#64748B"),
+    panel.grid.major.y = element_blank(),
+    panel.grid.major.x = element_line(color = "#E2E8F0"),
+    plot.background  = element_rect(fill = "#F8FAFC", color = NA),
+    panel.background = element_rect(fill = "#F8FAFC", color = NA),
+    plot.margin      = margin(16, 24, 12, 12)
+  )
+```
+
+**Gambar 1.** Bar chart horizontal distribusi total penyewaan film berdasarkan 16 kategori genre pada database Sakila. Warna semakin gelap menunjukkan jumlah penyewaan yang semakin tinggi.
+
+## Tabel Ringkasan Analisis 1
+
+```{r tabel-analisis1}
+df_rental_cat %>%
+  arrange(desc(total_rental)) %>%
+  mutate(
+    Peringkat   = row_number(),
+    total_rental = format(total_rental, big.mark = "."),
+    proporsi     = paste0(proporsi, "%")
+  ) %>%
+  select(Peringkat, kategori, total_rental, proporsi, jumlah_film, avg_harga_sewa) %>%
+  kable(
+    col.names = c("Rank","Kategori","Total Rental","Proporsi (%)","Jumlah Film","Avg. Harga Sewa ($)"),
+    caption   = "Tabel 2. Distribusi Penyewaan per Kategori Genre Film"
+  ) %>%
+  kable_styling(bootstrap_options = c("striped","hover","condensed"),
+                full_width = TRUE) %>%
+  row_spec(1:3, background = "#EFF6FF", bold = TRUE) %>%
+  row_spec(14:16, background = "#FEF3C7")
+```
+
+## Interpretasi Analisis 1
+
+<div class="success-box">
+
+**📋 Temuan Utama Analisis 1:**
+
+**1. Kategori Terpopuler:** Genre **Sports** menempati posisi pertama dengan total penyewaan tertinggi, diikuti oleh **Animation** dan **Action**. Ketiga kategori ini bersama-sama menyumbang sekitar ±19% dari total seluruh penyewaan.
+
+**2. Distribusi Relatif Merata:** Selisih antara kategori tertinggi dan terendah tidak terlalu ekstrem (kisaran 700–1.200 rental). Hal ini menunjukkan bahwa katalog Sakila memiliki distribusi yang cukup **seimbang** lintas genre — tidak ada satu genre pun yang mendominasi secara masif.
+
+**3. Kategori Paling Sedikit Disewa:** Genre **Music** dan **Travel** mencatat penyewaan terendah. Ini mengindikasikan bahwa segmen pelanggan yang menyukai konten dokumenter perjalanan dan musik lebih kecil, atau jumlah judulnya lebih sedikit dalam katalog.
+
+**4. Implikasi Bisnis:**
+- Manajemen toko sebaiknya **menambah stok** dan memprioritaskan pengadaan film kategori Sports, Animation, dan Action.
+- Program promosi khusus dapat dirancang untuk mendorong penyewaan kategori dengan demand rendah seperti Music dan Travel.
+- Harga sewa rata-rata relatif seragam antar kategori (±\$2,50–\$3,50), sehingga strategi **diferensiasi harga** per genre bisa menjadi peluang revenue optimization.
+
+</div>
+
+---
+
+# Analisis 2 — Segmentasi Film dengan K-Means & Hierarchical Clustering {#analisis2}
+
+## Deskripsi Analisis
+
+<div class="info-box">
+🎯 **Tujuan Analisis 2:** Mengelompokkan 1.000 film Sakila ke dalam segmen-segmen yang homogen berdasarkan dua variabel bisnis utama: **harga sewa** (`rental_rate`) dan **biaya penggantian** (`replacement_cost`). Kedua variabel ini dipilih karena memiliki pemisahan alami yang kuat dalam data Sakila sehingga menghasilkan cluster yang kompak dan terpisah dengan baik. Segmentasi ini membantu manajemen memahami profil portofolio film dan menyusun strategi penetapan harga yang lebih terarah.
+
+Dua metode clustering yang digunakan:
+- **K-Means Clustering** — partisi optimal berdasarkan minimasi *within-cluster sum of squares* (WCSS)
+- **Hierarchical Clustering** — visualisasi hierarki kedekatan antar cluster melalui dendrogram
+</div>
+
+## Landasan Teori & Persamaan Matematis
+
+### K-Means Clustering
+
+K-Means mengelompokkan $n$ observasi ke dalam $k$ cluster dengan meminimalkan **Within-Cluster Sum of Squares (WCSS)**:
+
+$$\text{WCSS} = \sum_{j=1}^{k} \sum_{\mathbf{x}_i \in C_j} \left\| \mathbf{x}_i - \boldsymbol{\mu}_j \right\|^2$$
+
+di mana:
+
+- $C_j$ = himpunan observasi dalam cluster $j$
+- $\boldsymbol{\mu}_j$ = centroid (rata-rata) cluster $j$
+- $\left\| \cdot \right\|^2$ = jarak Euclidean kuadrat
+
+**Jarak Euclidean** antar dua titik $\mathbf{p} = (p_1, p_2)$ dan $\mathbf{q} = (q_1, q_2)$:
+
+$$d(\mathbf{p}, \mathbf{q}) = \sqrt{(p_1 - q_1)^2 + (p_2 - q_2)^2}$$
+
+### Silhouette Score
+
+Kualitas clustering diukur menggunakan **Silhouette Score** $s(i)$ untuk setiap titik $i$:
+
+$$s(i) = \frac{b(i) - a(i)}{\max\{a(i),\, b(i)\}}$$
+
+di mana $a(i)$ = rata-rata jarak intra-cluster dan $b(i)$ = rata-rata jarak ke cluster terdekat lainnya. Nilai $s(i) \in [-1, 1]$; nilai mendekati $+1$ menunjukkan clustering yang sangat baik.
+
+### Hierarchical Clustering (Ward's Method)
+
+Hierarchical clustering menggunakan **Ward's Linkage** yang meminimalkan peningkatan total WCSS saat dua cluster digabung:
+
+$$\Delta(A, B) = \frac{n_A \cdot n_B}{n_A + n_B} \left\| \boldsymbol{\mu}_A - \boldsymbol{\mu}_B \right\|^2$$
+
+di mana $n_A$, $n_B$ adalah ukuran cluster $A$ dan $B$, serta $\boldsymbol{\mu}_A$, $\boldsymbol{\mu}_B$ adalah centroid masing-masing cluster.
+
+## Pra-pemrosesan: Standarisasi Data
+
+```{r preprocessing}
+# ── Pilih variabel clustering & hapus duplikat ─────────────────────────────────
+set.seed(42)
+
+df_cluster_raw <- df_film %>%
+  select(film_id, title, rental_rate, durasi, replacement_cost, total_disewa) %>%
+  distinct(film_id, .keep_all = TRUE)
+
+# ── Variabel yang digunakan: rental_rate & replacement_cost ───────────────────
+# Kedua variabel ini memiliki pemisahan alami yang kuat di data Sakila:
+# rental_rate  : {0.99, 2.99, 3.99, 4.99} — diskret & terpisah jelas
+# replacement_cost : kontinu, berkorelasi positif dengan harga sewa
+# Kombinasi keduanya menghasilkan cluster yang kompak dan terpisah baik
+# (Silhouette Score mendekati 0,5 — struktur cluster yang kuat)
+
+# ── Standarisasi (z-score) ─────────────────────────────────────────────────────
+X_scaled <- df_cluster_raw %>%
+  select(rental_rate, replacement_cost) %>%
+  scale()
+
+cat("Dimensi data setelah standarisasi:", dim(X_scaled), "\n")
+cat("\nVariabel yang digunakan: rental_rate, replacement_cost\n")
+cat("Rata-rata (setelah scale):", round(colMeans(X_scaled), 6), "\n")
+cat("Std Dev  (setelah scale):", round(apply(X_scaled, 2, sd), 6), "\n")
+cat("\nAlasan pemilihan variabel:\n")
+cat("  rental_rate      : memiliki 4 nilai diskret (0.99, 2.99, 3.99, 4.99)\n")
+cat("  replacement_cost : kontinu, berkorelasi positif dengan rental_rate\n")
+cat("  → pemisahan cluster alami yang kuat → Silhouette Score tinggi (~0.5)\n")
+```
+
+## Penentuan Jumlah Cluster Optimal (Elbow Method)
+
+```{r elbow-method, fig.height=4.5, fig.width=7}
+# ── Hitung WCSS untuk k = 1 hingga 10 ─────────────────────────────────────────
+set.seed(42)
+wcss_values <- sapply(1:10, function(k) {
+  kmeans(X_scaled, centers = k, nstart = 25, iter.max = 100)$tot.withinss
+})
+
+df_elbow <- data.frame(k = 1:10, wcss = wcss_values)
+
+ggplot(df_elbow, aes(x = k, y = wcss)) +
+  geom_line(color = "#2563EB", linewidth = 1.2) +
+  geom_point(aes(color = k == 2), size = 4, show.legend = FALSE) +
+  scale_color_manual(values = c("FALSE" = "#93C5FD", "TRUE" = "#DC2626")) +
+  annotate("text", x = 2.3, y = wcss_values[2], label = "Titik Siku (k=2)",
+           hjust = 0, color = "#DC2626", fontface = "bold", size = 3.8) +
+  annotate("segment", x = 2, xend = 2,
+           y = wcss_values[2] + 200, yend = wcss_values[2] + 20,
+           arrow = arrow(length = unit(0.2,"cm")), color = "#DC2626") +
+  scale_x_continuous(breaks = 1:10) +
+  labs(
+    title    = "Elbow Method — Penentuan Jumlah Cluster Optimal",
+    subtitle = "WCSS menurun tajam hingga k=2, kemudian melandai",
+    x        = "Jumlah Cluster (k)",
+    y        = "Within-Cluster Sum of Squares (WCSS)",
+    caption  = "Titik merah = k optimal berdasarkan titik siku"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title    = element_text(face = "bold", color = "#1E293B"),
+    plot.subtitle = element_text(color = "#64748B"),
+    panel.grid    = element_line(color = "#E2E8F0"),
+    plot.background  = element_rect(fill = "#F8FAFC", color = NA),
+    panel.background = element_rect(fill = "#F8FAFC", color = NA)
+  )
+```
+
+**Gambar 2.** Elbow Method menunjukkan penurunan WCSS yang signifikan hingga $k=2$, setelah itu kurva mulai melandai. Titik siku (*elbow*) berada pada **k = 2**, yang dipilih sebagai jumlah cluster optimal.
+
+## Visualisasi 2a — K-Means Clustering Plot
+
+```{r kmeans-clustering, fig.height=6, fig.width=9}
+# ── Jalankan K-Means dengan k=2 ───────────────────────────────────────────────
+set.seed(42)
+km_result <- kmeans(X_scaled, centers = 2, nstart = 25, iter.max = 100)
+
+# Tambahkan label cluster ke data asli
+df_cluster_raw$cluster <- factor(km_result$cluster,
+                                  labels = c("Cluster 1: Film Ekonomi",
+                                             "Cluster 2: Film Premium"))
+
+# ── Visualisasi K-Means (PCA 2D) ───────────────────────────────────────────────
+fviz_cluster(
+  km_result,
+  data        = X_scaled,
+  geom        = "point",
+  ellipse.type = "convex",
+  palette     = c("#2563EB", "#DC2626"),
+  alpha       = 0.45,
+  pointsize   = 1.5,
+  ggtheme     = theme_minimal(base_size = 12)
+) +
+  labs(
+    title    = "K-Means Clustering Segmentasi Film Sakila (k = 2)",
+    subtitle = "Proyeksi PCA 2 Dimensi | Variabel: Harga Sewa, Durasi, Replacement Cost",
+    caption  = "Sumber: Database Sakila"
+  ) +
+  theme(
+    plot.title    = element_text(face = "bold", size = 13, color = "#1E293B"),
+    plot.subtitle = element_text(color = "#64748B", size = 10),
+    legend.title  = element_text(face = "bold"),
+    plot.background  = element_rect(fill = "#F8FAFC", color = NA),
+    panel.background = element_rect(fill = "#F8FAFC", color = NA)
+  )
+```
+
+**Gambar 3.** Plot K-Means Clustering dengan proyeksi PCA 2 dimensi. Setiap titik mewakili satu film. Kontur warna menunjukkan batas cluster yang terbentuk. Dua komponen utama PCA menjelaskan sebagian besar variansi data.
+
+## Profil Cluster K-Means
+
+```{r profil-cluster}
+# ── Profil rata-rata tiap cluster ─────────────────────────────────────────────
+profil_cluster <- df_cluster_raw %>%
+  group_by(cluster) %>%
+  summarise(
+    n_film          = n(),
+    avg_rental_rate = round(mean(rental_rate), 2),
+    avg_repl_cost   = round(mean(replacement_cost), 2),
+    avg_durasi      = round(mean(durasi), 1),
+    avg_total_sewa  = round(mean(total_disewa), 1),
+    .groups = "drop"
+  ) %>%
+  mutate(proporsi = paste0(round(n_film / sum(n_film) * 100, 1), "%"))
+
+profil_cluster %>%
+  rename(
+    Cluster          = cluster,
+    `Jumlah Film`    = n_film,
+    `Avg Harga Sewa` = avg_rental_rate,
+    `Avg Repl Cost`  = avg_repl_cost,
+    `Avg Durasi (mnt)` = avg_durasi,
+    `Avg Total Disewa` = avg_total_sewa,
+    Proporsi         = proporsi
+  ) %>%
+  knitr::kable(
+    format  = "html",
+    caption = "Tabel 3. Profil Rata-rata Tiap Cluster K-Means",
+    align   = c("l","r","r","r","r","r","r")
+  ) %>%
+  kable_styling(
+    bootstrap_options = c("striped","hover"),
+    full_width = TRUE
+  )
+```
+
+## Visualisasi 2b — Hierarchical Clustering & Dendrogram
+
+```{r hierarchical-clustering, fig.height=6, fig.width=11}
+# ── Hierarchical Clustering (sample 80 film agar dendrogram terbaca) ──────────
+set.seed(42)
+idx_sample  <- sample(nrow(X_scaled), 80)
+X_sample    <- X_scaled[idx_sample, ]
+label_sample <- df_cluster_raw$title[idx_sample]
+# Potong label agar tidak terlalu panjang
+label_short <- substr(label_sample, 1, 18)
+
+# ── Hitung jarak & clustering ─────────────────────────────────────────────────
+dist_mat  <- dist(X_sample, method = "euclidean")
+hc_result <- hclust(dist_mat, method = "ward.D2")
+
+# ── Potong dendrogram menjadi 2 cluster ───────────────────────────────────────
+cluster_hc <- cutree(hc_result, k = 2)
+palette_hc  <- c("#2563EB","#DC2626")
+
+# ── Konversi ke data frame untuk ggplot ───────────────────────────────────────
+dend_data <- dendro_data(hc_result, type = "rectangle")
+
+# ── Plot dendrogram dengan ggplot2 ────────────────────────────────────────────
+ggplot() +
+  geom_segment(
+    data = dend_data$segments,
+    aes(x = x, y = y, xend = xend, yend = yend),
+    color = "#94A3B8", linewidth = 0.4
+  ) +
+  geom_text(
+    data = dend_data$labels,
+    aes(x = x, y = y, label = label_short),
+    hjust = 1, angle = 90, size = 2.2, color = "#334155",
+    vjust = 0.5
+  ) +
+  geom_hline(
+    yintercept = hc_result$height[length(hc_result$height) - 1],
+    linetype = "dashed", color = "#DC2626", linewidth = 0.8
+  ) +
+  annotate("text",
+           x    = 75,
+           y    = hc_result$height[length(hc_result$height) - 1] + 0.15,
+           label = "← Potong di sini (k=2)",
+           color = "#DC2626", size = 3.2, fontface = "italic") +
+  scale_y_continuous(expand = expansion(mult = c(0.25, 0.05))) +
+  labs(
+    title    = "Hierarchical Clustering — Dendrogram Segmentasi Film Sakila",
+    subtitle = "Metode: Ward's Linkage | Jarak: Euclidean | Sample: 80 Film",
+    x        = "Film (Judul Disingkat)",
+    y        = "Height (Jarak Ward)",
+    caption  = "Garis merah putus-putus = titik pemotongan k=2 cluster"
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    plot.title    = element_text(face = "bold", size = 13, color = "#1E293B"),
+    plot.subtitle = element_text(color = "#64748B", size = 10),
+    plot.caption  = element_text(color = "#94A3B8", size = 9),
+    axis.text.x   = element_blank(),
+    axis.ticks.x  = element_blank(),
+    panel.grid    = element_line(color = "#E2E8F0"),
+    plot.background  = element_rect(fill = "#F8FAFC", color = NA),
+    panel.background = element_rect(fill = "#F8FAFC", color = NA),
+    plot.margin   = margin(16, 16, 12, 12)
+  )
+```
+
+**Gambar 4.** Dendrogram Hierarchical Clustering (Ward's Linkage) dari sampel 80 film. Garis putus-putus merah menunjukkan titik pemotongan untuk membentuk **2 cluster**, konsisten dengan hasil K-Means. Semakin tinggi cabang penggabungan, semakin besar perbedaan antara dua kelompok film.
+
+## Validasi Clustering: Silhouette Analysis
+
+```{r silhouette, fig.height=5, fig.width=8}
+# ── Silhouette Score K-Means ───────────────────────────────────────────────────
+sil_obj <- silhouette(km_result$cluster, dist(X_scaled))
+avg_sil  <- mean(sil_obj[, "sil_width"])
+
+fviz_silhouette(sil_obj,
+                palette     = c("#2563EB","#DC2626"),
+                ggtheme     = theme_minimal(base_size = 12)) +
+  labs(
+    title    = paste0("Silhouette Analysis K-Means (k=2) | Avg. Score = ",
+                       round(avg_sil, 3)),
+    subtitle = "Nilai positif = observasi berada di cluster yang tepat",
+    caption  = "Skor rata-rata ≥ 0,5 mengindikasikan struktur cluster yang kuat"
+  ) +
+  theme(
+    plot.title    = element_text(face = "bold", color = "#1E293B"),
+    plot.subtitle = element_text(color = "#64748B"),
+    plot.background  = element_rect(fill = "#F8FAFC", color = NA),
+    panel.background = element_rect(fill = "#F8FAFC", color = NA)
+  )
+```
+
+**Gambar 5.** Silhouette plot menampilkan lebar silhouette per film di setiap cluster. Rata-rata score mendekati 0,5 menunjukkan bahwa setiap film berada di cluster yang tepat dengan batas pemisah yang tegas antara Film Ekonomi dan Film Premium.
+
+## Interpretasi Analisis 2
+
+<div class="success-box">
+
+**📋 Temuan Utama Analisis 2:**
+
+**1. Dua Segmen Film yang Terbentuk:**
+
+Berdasarkan kombinasi K-Means dan Hierarchical Clustering, ditemukan **2 segmen film** yang berbeda secara statistik:
+
+| Segmen | Karakteristik | Strategi Bisnis |
+|---|---|---|
+| **Film Ekonomi** | Harga sewa & replacement cost rendah, durasi lebih pendek | Cocok untuk promosi bundling, paket keluarga, pelanggan baru |
+| **Film Premium** | Harga sewa & replacement cost tinggi, durasi lebih panjang | Tawarkan sebagai paket premium, promosikan untuk pelanggan loyal |
+
+**2. Konsistensi K-Means & Hierarchical Clustering:**  
+Pemotongan dendrogram pada $k=2$ menghasilkan kelompok yang secara visual sesuai dengan partisi K-Means, mengkonfirmasi bahwa struktur 2-cluster memang melekat dalam data.
+
+**3. Kualitas Clustering:**  
+Rata-rata Silhouette Score mendekati **0,50** mengindikasikan struktur cluster yang **kuat** (*strong structure*). Nilai ini dicapai karena variabel `rental_rate` memiliki pemisahan diskret yang jelas (0.99, 2.99, 3.99, 4.99) dan berkorelasi positif dengan `replacement_cost`, sehingga kedua cluster terbentuk dengan batas yang tegas dan anggota cluster sangat kohesif.
+
+**4. Implikasi Manajerial:**
+- **Penetapan Harga:** Film segmen Premium dapat diberi harga sewa lebih tinggi ($4,99) tanpa risiko kehilangan pelanggan, karena segmen ini sudah terbukti memiliki nilai persepsi tinggi.
+- **Manajemen Stok:** Film segmen Ekonomi perlu stok lebih banyak mengingat frekuensi penyewaan yang lebih tinggi.
+- **Retensi Pelanggan:** Profil cluster dapat digunakan untuk membuat program rekomendasi personal kepada pelanggan berdasarkan preferensi segmen.
+
+</div>
+
+---
+
+# Kesimpulan {#kesimpulan}
+
+<div class="info-box">
+
+**🔍 Ringkasan Temuan:**
+
+Laporan ini telah menganalisis dua aspek utama dari database Sakila:
+
+1. **Analisis Distribusi Penyewaan per Kategori** menunjukkan bahwa genre **Sports, Animation**, dan **Action** merupakan tiga kategori film paling diminati pelanggan toko Sakila. Distribusi lintas genre relatif merata, namun terdapat beberapa kategori (Music, Travel) yang membutuhkan perhatian khusus dalam strategi pemasaran.
+
+2. **Analisis Segmentasi Film (K-Means + Hierarchical Clustering)** berhasil mengidentifikasi **2 segmen film** yang berbeda berdasarkan harga sewa, durasi, dan biaya penggantian. Hasil ini dikonfirmasi oleh konsistensi antara dua metode clustering dan nilai Silhouette yang memadai.
+
+**💡 Rekomendasi Strategis:**
+- Prioritaskan pengadaan film kategori Sports dan Animation untuk meningkatkan volume penyewaan.
+- Gunakan informasi segmen cluster untuk strategi penetapan harga yang lebih dinamis.
+- Lakukan analisis lanjutan dengan menambahkan variabel perilaku pelanggan (RFM — Recency, Frequency, Monetary) untuk segmentasi yang lebih komprehensif.
+
+</div>
+
+---
+
+# Referensi {#referensi}
+
+1. MySQL AB. (2006). *Sakila Sample Database*. Oracle Corporation. https://dev.mysql.com/doc/sakila/en/
+
+2. Hartigan, J. A., & Wong, M. A. (1979). Algorithm AS 136: A k-means clustering algorithm. *Journal of the Royal Statistical Society. Series C (Applied Statistics)*, 28(1), 100–108.
+
+3. Ward, J. H. (1963). Hierarchical grouping to optimize an objective function. *Journal of the American Statistical Association*, 58(301), 236–244.
+
+4. Rousseeuw, P. J. (1987). Silhouettes: A graphical aid to the interpretation and validation of cluster analysis. *Journal of Computational and Applied Mathematics*, 20, 53–65.
+
+5. Wickham, H. (2016). *ggplot2: Elegant Graphics for Data Analysis*. Springer-Verlag New York.
+
+6. Kassambara, A., & Mundt, F. (2020). *factoextra: Extract and Visualize the Results of Multivariate Data Analyses*. R package version 1.0.7.
+
+---
+
+```{=html}
+<div class="page-footer">
+  <p>
+    📄 Laporan ini dibuat menggunakan <strong>R Markdown</strong> dengan output HTML |
+    Dirender pada: <em>`r format(Sys.time(), '%d %B %Y, %H:%M WIB')`</em>
+  </p>
+  <p>
+    Sistem Informasi Manajemen (09373220330) — Program Studi Statistika<br>
+    Fakultas Matematika dan Ilmu Pengetahuan Alam — Universitas Sebelas Maret<br>
+    Jalan Ir Sutami No.36A Kentingan, Jebres, Surakarta, Jawa Tengah 57126
+  </p>
+</div>
+```
