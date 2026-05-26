@@ -1,2 +1,0 @@
-Ini Latihan mecute SIM
-
